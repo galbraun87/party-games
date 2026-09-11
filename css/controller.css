@@ -1,62 +1,59 @@
 #controller-view {
   display: flex !important;
-  flex-direction: row !important; /* Forces side-by-side in both portrait & landscape */
+  flex-direction: row !important;
   justify-content: space-between;
   align-items: center;
-  height: 100vh;
+  height: 100dvh; /* Adapts to dynamic mobile browser address bars */
   width: 100vw;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   background: radial-gradient(circle at center, #181a24 0%, #0a0b0e 100%);
   box-sizing: border-box;
   overflow: hidden;
 }
 
-/* Glassmorphic Control Pod Wrappers */
 .control-pod {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 12px;
+  border-radius: 20px;
+  padding: 8px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Modern Circular Thumb-Disc (D-Pad) */
+/* Responsive D-Pad that scales down on shallow screens */
 .dpad-container {
-  width: 160px;
-  height: 160px;
+  width: min(150px, 38vh);
+  height: min(150px, 38vh);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   gap: 4px;
   background: #12131a;
   border-radius: 50%;
-  padding: 8px;
+  padding: 6px;
   border: 2px solid #232635;
-  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .dpad-btn {
   background: #1a1c26;
   border: 1px solid #2d3142;
   color: #8a8fbf;
-  font-size: 1rem;
+  font-size: min(1rem, 3.5vh);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: all 0.05s ease;
+  border-radius: 6px;
   -webkit-appearance: none;
   outline: none;
 }
 
-#btn-up    { grid-column: 2; grid-row: 1; border-radius: 12px 12px 4px 4px; }
-#btn-left  { grid-column: 1; grid-row: 2; border-radius: 12px 4px 4px 12px; }
-#btn-right { grid-column: 3; grid-row: 2; border-radius: 4px 12px 12px 4px; }
-#btn-down  { grid-column: 2; grid-row: 3; border-radius: 4px 4px 12px 12px; }
+#btn-up    { grid-column: 2; grid-row: 1; border-radius: 10px 10px 4px 4px; }
+#btn-left  { grid-column: 1; grid-row: 2; border-radius: 10px 4px 4px 10px; }
+#btn-right { grid-column: 3; grid-row: 2; border-radius: 4px 10px 10px 4px; }
+#btn-down  { grid-column: 2; grid-row: 3; border-radius: 4px 4px 10px 10px; }
 
 .dpad-btn.active {
   background: #575fcf;
@@ -65,51 +62,57 @@
   box-shadow: 0 0 12px #575fcf;
 }
 
+/* Utility Center Section */
+.center-pod {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.util-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #8a8fbf;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  cursor: pointer;
+}
+
+.util-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
 /* Action Buttons Pod */
 .action-container {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
 }
 
 .action-btn {
-  width: 70px;
-  height: 70px;
+  width: min(65px, 18vh);
+  height: min(65px, 18vh);
   border-radius: 50%;
   background: linear-gradient(145deg, #1e202d, #14151e);
   color: #ffffff;
-  font-size: 1.3rem;
+  font-size: min(1.2rem, 3.5vh);
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   -webkit-appearance: none;
   outline: none;
-  transition: transform 0.05s ease, box-shadow 0.05s ease;
 }
 
-#btn-b {
-  border: 2px solid #ff4757;
-  color: #ff4757;
-  box-shadow: 0 0 8px rgba(255, 71, 87, 0.2);
-}
+#btn-b { border: 2px solid #ff4757; color: #ff4757; }
+#btn-a { border: 2px solid #2ed573; color: #2ed573; }
 
-#btn-a {
-  border: 2px solid #2ed573;
-  color: #2ed573;
-  box-shadow: 0 0 8px rgba(46, 213, 115, 0.2);
-}
-
-#btn-b.active {
-  background: #ff4757;
-  color: #fff;
-  box-shadow: 0 0 20px #ff4757;
-  transform: scale(0.92);
-}
-
-#btn-a.active {
-  background: #2ed573;
-  color: #fff;
-  box-shadow: 0 0 20px #2ed573;
-  transform: scale(0.92);
-}
+#btn-b.active { background: #ff4757; color: #fff; transform: scale(0.92); }
+#btn-a.active { background: #2ed573; color: #fff; transform: scale(0.92); }
