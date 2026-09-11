@@ -1,76 +1,115 @@
 #controller-view {
-  flex-direction: row;
-  justify-content: space-around;
+  display: flex !important;
+  flex-direction: row !important; /* Forces side-by-side in both portrait & landscape */
+  justify-content: space-between;
   align-items: center;
   height: 100vh;
   width: 100vw;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
+  background: radial-gradient(circle at center, #181a24 0%, #0a0b0e 100%);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
+/* Glassmorphic Control Pod Wrappers */
+.control-pod {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modern Circular Thumb-Disc (D-Pad) */
 .dpad-container {
-  width: 210px;
-  height: 210px;
+  width: 160px;
+  height: 160px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   gap: 4px;
-  flex-shrink: 0;
+  background: #12131a;
+  border-radius: 50%;
+  padding: 8px;
+  border: 2px solid #232635;
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .dpad-btn {
-  background: #2a2a35;
-  border: 2px solid #3f3f50;
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 1.2rem;
+  background: #1a1c26;
+  border: 1px solid #2d3142;
+  color: #8a8fbf;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  transition: all 0.05s ease;
+  -webkit-appearance: none;
   outline: none;
 }
+
+#btn-up    { grid-column: 2; grid-row: 1; border-radius: 12px 12px 4px 4px; }
+#btn-left  { grid-column: 1; grid-row: 2; border-radius: 12px 4px 4px 12px; }
+#btn-right { grid-column: 3; grid-row: 2; border-radius: 4px 12px 12px 4px; }
+#btn-down  { grid-column: 2; grid-row: 3; border-radius: 4px 4px 12px 12px; }
 
 .dpad-btn.active {
   background: #575fcf;
+  color: #ffffff;
   border-color: #70a1ff;
+  box-shadow: 0 0 12px #575fcf;
 }
 
-#btn-up { grid-column: 2; grid-row: 1; }
-#btn-left { grid-column: 1; grid-row: 2; }
-#btn-right { grid-column: 3; grid-row: 2; }
-#btn-down { grid-column: 2; grid-row: 3; }
-
+/* Action Buttons Pod */
 .action-container {
   display: flex;
-  justify-content: center;
+  gap: 1rem;
   align-items: center;
-  gap: 1.5rem;
-  flex-shrink: 0;
 }
 
 .action-btn {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  background: #2a2a35;
-  border: 3px solid #3f3f50;
+  background: linear-gradient(145deg, #1e202d, #14151e);
   color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.3rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-appearance: none;
   outline: none;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
 }
 
-.action-btn.active {
-  transform: scale(0.92);
+#btn-b {
+  border: 2px solid #ff4757;
+  color: #ff4757;
+  box-shadow: 0 0 8px rgba(255, 71, 87, 0.2);
+}
+
+#btn-a {
+  border: 2px solid #2ed573;
+  color: #2ed573;
+  box-shadow: 0 0 8px rgba(46, 213, 115, 0.2);
+}
+
+#btn-b.active {
   background: #ff4757;
-  border-color: #ff6b81;
+  color: #fff;
+  box-shadow: 0 0 20px #ff4757;
+  transform: scale(0.92);
 }
 
-@media (orientation: portrait) {
-  #controller-view {
-    flex-direction: column;
-  }
+#btn-a.active {
+  background: #2ed573;
+  color: #fff;
+  box-shadow: 0 0 20px #2ed573;
+  transform: scale(0.92);
 }
