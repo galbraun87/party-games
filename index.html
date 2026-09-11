@@ -79,22 +79,24 @@
             <div id="debug-bar"></div>
       </div>
 
-      <!-- 3. Phone Gamepad View -->
-      <div id="controller-view" class="screen">
-            <div class="dpad-container">
-                  <div></div><button class="dpad-btn" id="btn-up">▲</button>
-                  <div></div>
-                  <button class="dpad-btn" id="btn-left">◄</button>
-                  <div></div><button class="dpad-btn" id="btn-right">►</button>
-                  <div></div><button class="dpad-btn" id="btn-down">▼</button>
-                  <div></div>
-            </div>
-            <div class="action-container">
-                  <button class="action-btn" id="btn-b">B</button>
-                  <button class="action-btn" id="btn-a">A</button>
-            </div>
-      </div>
-
+<!-- Controller View -->
+<div id="controller-view" class="screen">
+  <div class="control-pod">
+    <div class="dpad-container">
+      <div></div><button class="dpad-btn" id="btn-up">▲</button><div></div>
+      <button class="dpad-btn" id="btn-left">◄</button><div></div><button class="dpad-btn" id="btn-right">►</button>
+      <div></div><button class="dpad-btn" id="btn-down">▼</button><div></div>
+    </div>
+  </div>
+  
+  <div class="control-pod">
+    <div class="action-container">
+      <button class="action-btn" id="btn-b">B</button>
+      <button class="action-btn" id="btn-a">A</button>
+    </div>
+  </div>
+</div>
+      
       <script type="module" src="js/app.js"></script>
 </body>
 
