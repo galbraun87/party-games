@@ -1,82 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
       <title>TV Party Games</title>
-        <link rel="stylesheet" href="css/main.css">
-          <link rel="stylesheet" href="css/tv.css">
-            <link rel="stylesheet" href="css/controller.css">
-              <style>
-                  /* Mode selection splash styling */
-                      .screen { display: none; height: 100vh; width: 100vw; }
-                          .screen.active { display: flex; }
-                              #menu-view {
-                                    flex-direction: column;
-                                          justify-content: center;
-                                                align-items: center;
-                                                      gap: 1.5rem;
-                                                            background: #121216;
-                                                                }
-                                                                    .menu-btn {
-                                                                          padding: 1rem 2rem;
-                                                                                font-size: 1.2rem;
-                                                                                      font-weight: bold;
-                                                                                            border: none;
-                                                                                                  border-radius: 8px;
-                                                                                                        cursor: pointer;
-                                                                                                              background: #575fcf;
-                                                                                                                    color: white;
-                                                                                                                        }
-                                                                                                                            .join-box { display: flex; gap: 0.5rem; }
-                                                                                                                                .join-box input {
-                                                                                                                                      width: 120px;
-                                                                                                                                            font-size: 1.2rem;
-                                                                                                                                                  text-align: center;
-                                                                                                                                                        border-radius: 8px;
-                                                                                                                                                              border: 1px solid #444;
-                                                                                                                                                                    background: #222;
-                                                                                                                                                                          color: white;
-                                                                                                                                                                              }
-                                                                                                                                                                                </style>
-                                                                                                                                                                                </head>
-                                                                                                                                                                                <body>
+      <link rel="stylesheet" href="css/main.css">
+      <link rel="stylesheet" href="css/tv.css">
+      <link rel="stylesheet" href="css/controller.css">
+      <style>
+            /* Mode selection splash styling */
+            .screen {
+                  display: none;
+                  height: 100vh;
+                  width: 100vw;
+            }
 
-                                                                                                                                                                                  <!-- 1. Selection / Join View -->
-                                                                                                                                                                                    <div id="menu-view" class="screen active">
-                                                                                                                                                                                        <h1>TV Party Host</h1>
-                                                                                                                                                                                            <button id="btn-host-tv" class="menu-btn">Host on TV</button>
-                                                                                                                                                                                                <hr style="width:200px; border-color:#333;">
-                                                                                                                                                                                                    <div class="join-box">
-                                                                                                                                                                                                          <input type="text" id="room-code-input" placeholder="4-digit code" maxlength="4">
-                                                                                                                                                                                                                <button id="btn-join-phone" class="menu-btn">Join</button>
-                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                      </div>
+            .screen.active {
+                  display: flex;
+            }
 
-                                                                                                                                                                                                                        <!-- 2. TV Screen View -->
-                                                                                                                                                                                                                          <div id="tv-view" class="screen">
-                                                                                                                                                                                                                              <div id="game-stage">
-                                                                                                                                                                                                                                    <div style="padding:1rem; color:#aaa; position:absolute;">
-                                                                                                                                                                                                                                            ROOM CODE: <strong id="room-code-display" style="color:#fff; font-size:1.5rem;">----</strong>
-                                                                                                                                                                                                                                                  </div>
-                                                                                                                                                                                                                                                      </div>
-                                                                                                                                                                                                                                                          <div id="debug-bar"></div>
-                                                                                                                                                                                                                                                            </div>
+            #menu-view {
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  gap: 1.5rem;
+                  background: #121216;
+            }
 
-                                                                                                                                                                                                                                                              <!-- 3. Phone Gamepad View -->
-                                                                                                                                                                                                                                                                <div id="controller-view" class="screen">
-                                                                                                                                                                                                                                                                    <div class="dpad-container">
-                                                                                                                                                                                                                                                                          <div></div><button class="dpad-btn" id="btn-up">▲</button><div></div>
-                                                                                                                                                                                                                                                                                <button class="dpad-btn" id="btn-left">◄</button><div></div><button class="dpad-btn" id="btn-right">►</button>
-                                                                                                                                                                                                                                                                                      <div></div><button class="dpad-btn" id="btn-down">▼</button><div></div>
-                                                                                                                                                                                                                                                                                          </div>
-                                                                                                                                                                                                                                                                                              <div class="action-container">
-                                                                                                                                                                                                                                                                                                    <button class="action-btn" id="btn-b">B</button>
-                                                                                                                                                                                                                                                                                                          <button class="action-btn" id="btn-a">A</button>
-                                                                                                                                                                                                                                                                                                              </div>
-                                                                                                                                                                                                                                                                                                                </div>
+            .menu-btn {
+                  padding: 1rem 2rem;
+                  font-size: 1.2rem;
+                  font-weight: bold;
+                  border: none;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  background: #575fcf;
+                  color: white;
+            }
 
-                                                                                                                                                                                                                                                                                                                  <script type="module" src="js/app.js"></script>
-                                                                                                                                                                                                                                                                                                                  </body>
-                                                                                                                                                                                                                                                                                                                  </html>
-                                                                                                                                                                                                                                                                                                                  
+            .join-box {
+                  display: flex;
+                  gap: 0.5rem;
+            }
+
+            .join-box input {
+                  width: 120px;
+                  font-size: 1.2rem;
+                  text-align: center;
+                  border-radius: 8px;
+                  border: 1px solid #444;
+                  background: #222;
+                  color: white;
+            }
+      </style>
+</head>
+
+<body>
+
+      <!-- 1. Selection / Join View -->
+      <div id="menu-view" class="screen active">
+            <h1>TV Party Host</h1>
+            <button id="btn-host-tv" class="menu-btn">Host on TV</button>
+            <hr style="width:200px; border-color:#333;">
+            <div class="join-box">
+                  <input type="text" id="room-code-input" placeholder="4-digit code" maxlength="4">
+                  <button id="btn-join-phone" class="menu-btn">Join</button>
+            </div>
+      </div>
+
+      <!-- 2. TV Screen View -->
+      <div id="tv-view" class="screen">
+            <div id="game-stage">
+                  <div style="padding:1rem; color:#aaa; position:absolute;">
+                        ROOM CODE: <strong id="room-code-display" style="color:#fff; font-size:1.5rem;">----</strong>
+                  </div>
+            </div>
+            <div id="debug-bar"></div>
+      </div>
+
+      <!-- 3. Phone Gamepad View -->
+      <div id="controller-view" class="screen">
+            <div class="dpad-container">
+                  <div></div><button class="dpad-btn" id="btn-up">▲</button>
+                  <div></div>
+                  <button class="dpad-btn" id="btn-left">◄</button>
+                  <div></div><button class="dpad-btn" id="btn-right">►</button>
+                  <div></div><button class="dpad-btn" id="btn-down">▼</button>
+                  <div></div>
+            </div>
+            <div class="action-container">
+                  <button class="action-btn" id="btn-b">B</button>
+                  <button class="action-btn" id="btn-a">A</button>
+            </div>
+      </div>
+
+      <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
