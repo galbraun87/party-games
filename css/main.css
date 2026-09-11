@@ -28,3 +28,13 @@ body {
   height: 100vh;
   width: 100vw;
 }
+
+.screen {
+  display: none !important;
+  height: 100vh;
+  width: 100vw;
+}
+
+.screen.active {
+  display: flex !important;
+}
