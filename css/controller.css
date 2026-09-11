@@ -1,5 +1,4 @@
 #controller-view {
-  display: flex;
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
@@ -9,7 +8,6 @@
   box-sizing: border-box;
 }
 
-/* Fixed dimensions prevent grid row collapse on mobile */
 .dpad-container {
   width: 210px;
   height: 210px;
@@ -42,7 +40,6 @@
 #btn-right { grid-column: 3; grid-row: 2; }
 #btn-down { grid-column: 2; grid-row: 3; }
 
-/* Action Buttons Section */
 .action-container {
   display: flex;
   justify-content: center;
@@ -72,7 +69,6 @@
   border-color: #ff6b81;
 }
 
-/* Adjust layout if phone is held upright (portrait) */
 @media (orientation: portrait) {
   #controller-view {
     flex-direction: column;
