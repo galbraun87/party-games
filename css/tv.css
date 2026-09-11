@@ -1,0 +1,57 @@
+#tv-view {
+      display: flex;
+        flex-direction: column;
+          height: 100vh;
+          }
+
+          #game-stage {
+            flex: 1;
+              position: relative;
+                background: #000;
+                }
+
+                /* Debug Panel Bar at the bottom */
+                #debug-bar {
+                  height: 140px;
+                    background: var(--panel-bg);
+                      display: grid;
+                        grid-template-columns: repeat(8, 1fr);
+                          gap: 6px;
+                            padding: 8px;
+                              border-top: 2px solid #3f3f50;
+                              }
+
+                              .player-card {
+                                background: #141419;
+                                  border-radius: 6px;
+                                    border-top: 4px solid #555;
+                                      padding: 6px;
+                                        display: flex;
+                                          flex-direction: column;
+                                            align-items: center;
+                                              font-size: 0.75rem;
+                                              }
+
+                                              .player-card.connected {
+                                                border-top-color: var(--p-color);
+                                                }
+
+                                                .mini-pad {
+                                                  margin-top: 8px;
+                                                    display: flex;
+                                                      gap: 8px;
+                                                        align-items: center;
+                                                        }
+
+                                                        .mini-dpad, .mini-btn {
+                                                          width: 14px;
+                                                            height: 14px;
+                                                              background: #333;
+                                                                border-radius: 2px;
+                                                                }
+
+                                                                .mini-dpad.active, .mini-btn.active {
+                                                                  background: var(--p-color, #2ed573);
+                                                                  }
+                                                                  
+}
