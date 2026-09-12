@@ -17,16 +17,19 @@ export class TVDebugPanel {
       card.className = 'player-card';
       card.style.setProperty('--p-color', PLAYER_COLORS[i]);
       card.innerHTML = `
-                                                                  <span>P${i + 1}</span>
-                                                                          <div class="mini-pad">
-                                                                                    <div class="mini-dpad d-up" id="p${i}-up"></div>
-                                                                                              <div class="mini-dpad d-down" id="p${i}-down"></div>
-                                                                                                        <div class="mini-dpad d-left" id="p${i}-left"></div>
-                                                                                                                  <div class="mini-dpad d-right" id="p${i}-right"></div>
-                                                                                                                            <div class="mini-btn" id="p${i}-a"></div>
-                                                                                                                                      <div class="mini-btn" id="p${i}-b"></div>
-                                                                                                                                              </div>
-                                                                                                                                                    `;
+        <span class="player-label">P${i + 1}</span>
+        <div class="mini-controller">
+          <div class="mini-dpad-grid">
+            <div></div><div class="mini-key" id="p${i}-up"></div><div></div>
+            <div class="mini-key" id="p${i}-left"></div><div></div><div class="mini-key" id="p${i}-right"></div>
+            <div></div><div class="mini-key" id="p${i}-down"></div><div></div>
+          </div>
+          <div class="mini-actions">
+            <div class="mini-key mini-btn btn-b" id="p${i}-b"></div>
+            <div class="mini-key mini-btn btn-a" id="p${i}-a"></div>
+          </div>
+        </div>
+      `;
       this.container.appendChild(card);
       this.slots.push(card);
     }
@@ -47,4 +50,3 @@ export class TVDebugPanel {
     });
   }
 }
-                                                                                                                                                                                                                        
