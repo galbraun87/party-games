@@ -1,7 +1,7 @@
 const PREFIX = 'tvparty-';
 const MAX_PLAYERS = 8;
 const STAGE1_TIMEOUT = 12000; // 12s -> Player grayed out (Inactive)
-const STAGE2_TIMEOUT = 42000; // 42s total (12s + 30s grace) -> Hard kick
+const STAGE2_TIMEOUT = 42000; // 42s total -> Hard kick
 
 export class PeerHost {
   constructor(onConnect, onDisconnect, onInput, onNameChange, onStatusChange) {
@@ -9,15 +9,15 @@ export class PeerHost {
     this.onDisconnect = onDisconnect;
     this.onInput = onInput;
     this.onNameChange = onNameChange;
-    this.onStatusChange = onStatusChange; // Optional callback for UI status updates
+    this.onStatusChange = onStatusChange;
 
     this.slots = new Array(MAX_PLAYERS).fill(null);
     this.deviceIds = new Array(MAX_PLAYERS).fill(null);
     this.lastSeen = new Array(MAX_PLAYERS).fill(0);
-    this.playerStates = new Array(MAX_PLAYERS).fill('disconnected'); // 'connected' | 'inactive' | 'disconnected'
+    this.playerStates = new Array(MAX_PLAYERS).fill('disconnected');
     
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    this.code = Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    // Strict 4-digit numeric room code generator (1000 - 9999)
+    this.code = Math.floor(1000 + Math.random() * 9000).toString();
     this.peer = null;
     
     this.init();
@@ -31,13 +31,12 @@ export class PeerHost {
         let currentSlot = this.slots.indexOf(conn);
 
         if (data && data.type === 'JOIN') {
-          // If the same device is connecting again, kick the old stale connection
+          // Kick stale connection if same device reconnects
           const existingSlot = this.deviceIds.indexOf(data.deviceId);
           if (existingSlot !== -1) {
             this.purgeSlot(existingSlot);
           }
 
-          // Assign first available slot
           const slot = this.slots.findIndex(s => s === null);
           if (slot === -1) { conn.close(); return; }
 
@@ -55,14 +54,12 @@ export class PeerHost {
         if (currentSlot !== -1) {
           this.lastSeen[currentSlot] = Date.now();
           
-          // Re-activate if player was previously marked inactive
           if (this.playerStates[currentSlot] === 'inactive') {
             this.playerStates[currentSlot] = 'connected';
             if (this.onStatusChange) this.onStatusChange(currentSlot, 'connected');
           }
 
           if (data && data.type === 'LEAVE') {
-            // Explicit user exit (tab closed)
             this.purgeSlot(currentSlot);
           } else if (data && data.type === 'SET_NAME') {
             if (this.onNameChange) this.onNameChange(currentSlot, data.name);
@@ -104,19 +101,14 @@ export class PeerHost {
         const conn = this.slots[i];
         if (conn) {
           const silentTime = now - this.lastSeen[i];
-
-          // Stage 2: Hard Eviction (> 42s total)
           if (silentTime > STAGE2_TIMEOUT) {
             this.purgeSlot(i);
-          } 
-          // Stage 1: Gray out player (> 12s)
-          else if (silentTime > STAGE1_TIMEOUT) {
+          } else if (silentTime > STAGE1_TIMEOUT) {
             if (this.playerStates[i] !== 'inactive') {
               this.playerStates[i] = 'inactive';
               if (this.onStatusChange) this.onStatusChange(i, 'inactive');
             }
-          } 
-          else {
+          } else {
             if (conn.open) conn.send({ type: 'PING' });
           }
         }

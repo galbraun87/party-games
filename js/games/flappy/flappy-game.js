@@ -24,6 +24,9 @@ export class FlappyGame {
 
     this.initBackground();
     this.initPlayers();
+    
+    // Auto-start rendering pipeline
+    this.start();
   }
 
   initPlayers() {
@@ -57,7 +60,7 @@ export class FlappyGame {
       this.birds[slot].active = active;
       this.birds[slot].alive = active;
       if (name) this.birds[slot].name = name;
-      if (active && !this.birds[slot].alive) {
+      if (active) {
         this.birds[slot].y = 300;
         this.birds[slot].vy = 0;
       }
@@ -77,13 +80,11 @@ export class FlappyGame {
     this.frameCount++;
     this.groundOffset = (this.groundOffset + this.pipeSpeed) % 30;
 
-    // Scroll clouds
     this.clouds.forEach(c => {
       c.x -= c.speed;
       if (c.x < -150) c.x = this.width + 100;
     });
 
-    // Spawn pipes
     if (this.frameCount % this.pipeSpawnInterval === 0) {
       const minCap = 80;
       const maxCap = this.height - 180 - this.pipeGap - minCap;
@@ -97,37 +98,31 @@ export class FlappyGame {
       });
     }
 
-    // Update pipes
     for (let i = this.pipes.length - 1; i >= 0; i--) {
       const p = this.pipes[i];
       p.x -= this.pipeSpeed;
       if (p.x + p.width < 0) this.pipes.splice(i, 1);
     }
 
-    // Update birds
     this.birds.forEach(bird => {
       if (!bird.active || !bird.alive) return;
 
       bird.vy += this.gravity;
       bird.y += bird.vy;
 
-      // Physics tilt & wing animation
       bird.tilt = Math.min(Math.PI / 3, Math.max(-Math.PI / 4, bird.vy * 0.08));
       bird.wingAngle = Math.sin(this.frameCount * 0.25) * 0.6;
 
-      // Ground collision
       if (bird.y + bird.radius >= this.height - 60) {
         bird.y = this.height - 60 - bird.radius;
         bird.alive = false;
       }
 
-      // Ceiling collision
       if (bird.y - bird.radius <= 0) {
         bird.y = bird.radius;
         bird.vy = 0;
       }
 
-      // Pipe collisions
       this.pipes.forEach(pipe => {
         if (bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipe.width) {
           if (bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.bottomY) {
@@ -181,7 +176,6 @@ export class FlappyGame {
 
     this.ctx.save();
 
-    // Pipe stem cylinder gradient
     const pipeGrad = this.ctx.createLinearGradient(x, 0, x + width, 0);
     pipeGrad.addColorStop(0, '#134e13');
     pipeGrad.addColorStop(0.25, '#2ecc71');
@@ -192,7 +186,6 @@ export class FlappyGame {
     this.ctx.fillStyle = pipeGrad;
     this.ctx.fillRect(x, y, width, height);
 
-    // Pipe Lip Cap
     const capHeight = 28;
     const capExtra = 6;
     const capX = x - capExtra;
@@ -208,7 +201,6 @@ export class FlappyGame {
     this.ctx.fillStyle = capGrad;
     this.ctx.fillRect(capX, capY, capWidth, capHeight);
 
-    // 3D Bevel Lines
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
     this.ctx.fillRect(capX + 8, capY, 4, capHeight);
 
@@ -221,18 +213,15 @@ export class FlappyGame {
   drawGround() {
     const groundY = this.height - 60;
 
-    // Dirt
     const dirtGrad = this.ctx.createLinearGradient(0, groundY, 0, this.height);
     dirtGrad.addColorStop(0, '#d35400');
     dirtGrad.addColorStop(1, '#6e2c00');
     this.ctx.fillStyle = dirtGrad;
     this.ctx.fillRect(0, groundY, this.width, 60);
 
-    // Grass Top Strip
     this.ctx.fillStyle = '#2ecc71';
     this.ctx.fillRect(0, groundY, this.width, 14);
 
-    // Scrolling Grass Pattern
     this.ctx.fillStyle = '#27ae60';
     for (let x = -this.groundOffset; x < this.width + 30; x += 30) {
       this.ctx.beginPath();
@@ -253,7 +242,6 @@ export class FlappyGame {
 
       if (!bird.alive) this.ctx.globalAlpha = 0.4;
 
-      // Main Oval Body
       const bodyGrad = this.ctx.createRadialGradient(-4, -4, 2, 0, 0, bird.radius);
       bodyGrad.addColorStop(0, '#ffffff');
       bodyGrad.addColorStop(0.4, bird.color);
@@ -267,20 +255,17 @@ export class FlappyGame {
       this.ctx.strokeStyle = '#000000';
       this.ctx.stroke();
 
-      // Eye
       this.ctx.fillStyle = '#ffffff';
       this.ctx.beginPath();
       this.ctx.arc(6, -6, 6, 0, Math.PI * 2);
       this.ctx.fill();
       this.ctx.stroke();
 
-      // Pupil
       this.ctx.fillStyle = '#000000';
       this.ctx.beginPath();
       this.ctx.arc(8, -6, 2.5, 0, Math.PI * 2);
       this.ctx.fill();
 
-      // Beak
       this.ctx.fillStyle = '#f39c12';
       this.ctx.beginPath();
       this.ctx.moveTo(8, -2);
@@ -290,7 +275,6 @@ export class FlappyGame {
       this.ctx.fill();
       this.ctx.stroke();
 
-      // Wing
       this.ctx.save();
       this.ctx.translate(-4, 2);
       this.ctx.rotate(bird.wingAngle);
@@ -303,7 +287,6 @@ export class FlappyGame {
 
       this.ctx.restore();
 
-      // Name Tag Badge above bird
       this.ctx.save();
       this.ctx.font = 'bold 12px Nunito, sans-serif';
       this.ctx.textAlign = 'center';
