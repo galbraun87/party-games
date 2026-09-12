@@ -1,33 +1,41 @@
 #tv-view {
+  display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 #game-stage {
   flex: 1;
   position: relative;
   background: #000;
+  min-height: 0; /* Prevents flex child from overflowing parent */
 }
 
+/* Debug Panel Bar at the bottom */
 #debug-bar {
-  height: 140px;
+  height: min(110px, 18dvh);
   background: var(--panel-bg);
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 6px;
-  padding: 8px;
+  gap: 4px;
+  padding: 6px;
   border-top: 2px solid #3f3f50;
+  box-sizing: border-box;
 }
 
 .player-card {
   background: #141419;
   border-radius: 6px;
-  border-top: 4px solid #555;
-  padding: 6px;
+  border-top: 3px solid #555;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.75rem;
+  justify-content: space-around;
+  font-size: clamp(0.5rem, 1.2vw, 0.75rem);
+  min-width: 0;
 }
 
 .player-card.connected {
@@ -35,19 +43,21 @@
 }
 
 .mini-pad {
-  margin-top: 8px;
   display: flex;
-  gap: 8px;
+  gap: 3px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .mini-dpad, .mini-btn {
-  width: 14px;
-  height: 14px;
+  width: min(10px, 2vw);
+  height: min(10px, 2vw);
   background: #333;
   border-radius: 2px;
 }
 
 .mini-dpad.active, .mini-btn.active {
   background: var(--p-color, #2ed573);
+  box-shadow: 0 0 4px var(--p-color, #2ed573);
 }
