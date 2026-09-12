@@ -14,9 +14,9 @@ export class TVDebugPanel {
         <div class="player-label">P${i + 1}</div>
         <div class="mini-controller">
           <div class="mini-dpad-grid">
-            <div class="mini-key"></div><div class="mini-key key-up"></div><div class="mini-key"></div>
-            <div class="mini-key key-left"></div><div class="mini-key"></div><div class="mini-key key-right"></div>
-            <div class="mini-key"></div><div class="mini-key key-down"></div><div class="mini-key"></div>
+            <div class="mini-key"></div><div class="mini-key dir key-up"></div><div class="mini-key"></div>
+            <div class="mini-key dir key-left"></div><div class="mini-key"></div><div class="mini-key dir key-right"></div>
+            <div class="mini-key"></div><div class="mini-key dir key-down"></div><div class="mini-key"></div>
           </div>
           <div class="mini-actions">
             <div class="mini-btn btn-b"></div><div class="mini-btn btn-a"></div>
@@ -32,10 +32,21 @@ export class TVDebugPanel {
     if (!card) return;
     if (isConnected) {
       card.classList.add('connected');
+      card.classList.remove('inactive');
       if (customName) this.setName(slot, customName);
     } else {
-      card.classList.remove('connected');
+      card.classList.remove('connected', 'inactive');
       card.querySelector('.player-label').innerText = `P${slot + 1}`;
+    }
+  }
+
+  setStatus(slot, status) {
+    const card = this.container.children[slot];
+    if (!card) return;
+    if (status === 'inactive') {
+      card.classList.add('inactive');
+    } else if (status === 'connected') {
+      card.classList.remove('inactive');
     }
   }
 
