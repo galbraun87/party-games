@@ -1,7 +1,7 @@
 import { PeerHost } from './core/peer-host.js';
 import { PeerClient } from './core/peer-client.js';
 import { TVDebugPanel } from './ui/tv-debug.js';
-import { FlappyGame } from './game/flappy-game.js';
+import { FlappyGame } from './games/flappy/flappy-game.js';
 
 let host = null;
 let client = null;
