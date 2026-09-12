@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>TV Party Games</title>
   <style>
     :root {
       --bg-color: #121216;
       --panel-bg: #1e1e24;
-      --p1-color: #ff4757;
-      --p2-color: #2ed573;
-      --p3-color: #1e90ff;
-      --p4-color: #ffa502;
-      --p5-color: #9b59b6;
-      --p6-color: #e84393;
-      --p7-color: #00d2d3;
-      --p8-color: #ff6b81;
+      /* Highly distinct colors. No Greens or Cyans */
+      --p1-color: #ff3333; /* Red */
+      --p2-color: #3366ff; /* Blue */
+      --p3-color: #ffff33; /* Yellow */
+      --p4-color: #ff33ff; /* Magenta */
+      --p5-color: #ff9900; /* Orange */
+      --p6-color: #ffffff; /* White */
+      --p7-color: #9900ff; /* Purple */
+      --p8-color: #000000; /* Black */
     }
 
     * {
@@ -24,7 +25,7 @@
       padding: 0;
       user-select: none;
       -webkit-user-select: none;
-      touch-action: none;
+      touch-action: none; /* Prevents gesture zooming */
     }
 
     body {
@@ -51,7 +52,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
 
     .menu-btn {
@@ -66,10 +67,21 @@
       -webkit-appearance: none;
     }
 
-    .join-box { display: flex; gap: 0.5rem; }
+    .join-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid #333;
+    }
+
     .join-box input {
-      width: 120px;
-      font-size: 1.2rem;
+      width: 200px;
+      padding: 0.75rem;
+      font-size: 1.1rem;
       text-align: center;
       border-radius: 8px;
       border: 1px solid #444;
@@ -77,7 +89,7 @@
       color: white;
     }
 
-    /* 2. TV View & Debug Bar Layout */
+    /* 2. TV View */
     #tv-view {
       flex-direction: column;
       height: 100dvh;
@@ -90,12 +102,31 @@
       position: relative;
       background: #000;
       min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #game-canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      background: #70c5ce;
+    }
+
+    .room-code-tag {
+      position: absolute;
+      top: 1rem;
+      right: 1.25rem;
+      z-index: 10;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.9rem;
+      color: #ccc;
     }
 
     #debug-bar {
@@ -106,7 +137,6 @@
       gap: 4px;
       padding: 6px;
       border-top: 2px solid #3f3f50;
-      box-sizing: border-box;
     }
 
     .player-card {
@@ -128,14 +158,16 @@
     }
 
     .player-label {
-      font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+      font-size: clamp(0.55rem, 0.85vw, 0.75rem);
       font-weight: 800;
       color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
     }
 
-    .player-card.connected .player-label {
-      color: var(--p-color);
-    }
+    .player-card.connected .player-label { color: var(--p-color); }
 
     .mini-controller {
       display: flex;
@@ -154,39 +186,21 @@
       gap: 1px;
     }
 
-    .mini-key {
-      background: #252733;
-      border-radius: 1px;
-    }
-
-    .mini-key.active {
-      background: var(--p-color, #2ed573);
-      box-shadow: 0 0 5px var(--p-color, #2ed573);
-    }
-
-    .mini-actions {
-      display: flex;
-      gap: 3px;
-      align-items: center;
-    }
-
-    .mini-btn {
-      width: min(10px, 1.8vw);
-      height: min(10px, 1.8vw);
-      border-radius: 50%;
-    }
-
+    .mini-key { background: #252733; border-radius: 1px; }
+    .mini-key.active { background: var(--p-color, #2ed573); box-shadow: 0 0 5px var(--p-color); }
+    .mini-actions { display: flex; gap: 3px; align-items: center; }
+    .mini-btn { width: min(10px, 1.8vw); height: min(10px, 1.8vw); border-radius: 50%; }
     .mini-btn.btn-b { border: 1px solid #ff4757; }
     .mini-btn.btn-a { border: 1px solid #2ed573; }
 
-    /* 3. Controller View */
+    /* 3. Controller View (Enlarged Buttons) */
     #controller-view {
       flex-direction: row !important;
       justify-content: space-between;
       align-items: center;
       height: 100dvh;
       width: 100vw;
-      padding: 0.75rem 1rem;
+      padding: 1rem 2rem;
       background: radial-gradient(circle at center, #181a24 0%, #0a0b0e 100%);
       box-sizing: border-box;
       overflow: hidden;
@@ -196,8 +210,8 @@
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 8px;
+      border-radius: 24px;
+      padding: 12px;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
       display: flex;
       justify-content: center;
@@ -205,8 +219,8 @@
     }
 
     .dpad-container {
-      width: min(150px, 38vh);
-      height: min(150px, 38vh);
+      width: min(220px, 45vh);
+      height: min(220px, 45vh);
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(3, 1fr);
@@ -221,41 +235,37 @@
       background: #1a1c26;
       border: 1px solid #2d3142;
       color: #8a8fbf;
-      font-size: min(1rem, 3.5vh);
+      font-size: min(1.5rem, 4vh);
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 6px;
+      border-radius: 8px;
       -webkit-appearance: none;
       outline: none;
     }
 
-    #btn-up    { grid-column: 2; grid-row: 1; border-radius: 10px 10px 4px 4px; }
-    #btn-left  { grid-column: 1; grid-row: 2; border-radius: 10px 4px 4px 10px; }
-    #btn-right { grid-column: 3; grid-row: 2; border-radius: 4px 10px 10px 4px; }
-    #btn-down  { grid-column: 2; grid-row: 3; border-radius: 4px 4px 10px 10px; }
+    #btn-up    { grid-column: 2; grid-row: 1; border-radius: 14px 14px 6px 6px; }
+    #btn-left  { grid-column: 1; grid-row: 2; border-radius: 14px 6px 6px 14px; }
+    #btn-right { grid-column: 3; grid-row: 2; border-radius: 6px 14px 14px 6px; }
+    #btn-down  { grid-column: 2; grid-row: 3; border-radius: 6px 6px 14px 14px; }
 
     .dpad-btn.active {
       background: #575fcf;
       color: #ffffff;
       border-color: #70a1ff;
-      box-shadow: 0 0 12px #575fcf;
+      box-shadow: 0 0 15px #575fcf;
     }
 
-    .center-pod {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .center-pod { display: flex; align-items: center; justify-content: center; }
 
     .util-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #8a8fbf;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -263,24 +273,21 @@
       cursor: pointer;
     }
 
-    .util-btn:active {
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-    }
+    .util-btn:active { background: rgba(255, 255, 255, 0.2); color: #fff; }
 
     .action-container {
       display: flex;
-      gap: 0.75rem;
+      gap: 1.5rem;
       align-items: center;
     }
 
     .action-btn {
-      width: min(65px, 18vh);
-      height: min(65px, 18vh);
+      width: min(85px, 20vh);
+      height: min(85px, 20vh);
       border-radius: 50%;
       background: linear-gradient(145deg, #1e202d, #14151e);
       color: #ffffff;
-      font-size: min(1.2rem, 3.5vh);
+      font-size: min(1.5rem, 4vh);
       font-weight: 800;
       display: flex;
       align-items: center;
@@ -303,20 +310,21 @@
   <div id="menu-view" class="screen active">
     <h1>TV Party Host</h1>
     <button id="btn-host-tv" class="menu-btn">Host on TV</button>
-    <hr style="width:200px; border-color:#333;">
+    <hr style="width:220px; border-color:#333; margin: 1rem 0;">
     <div class="join-box">
+      <input type="text" id="player-name-input" placeholder="Your Name" maxlength="10">
       <input type="text" id="room-code-input" placeholder="4-digit code" maxlength="4">
-      <button id="btn-join-phone" class="menu-btn">Join</button>
+      <button id="btn-join-phone" class="menu-btn">Join Game</button>
     </div>
   </div>
 
   <!-- TV View -->
   <div id="tv-view" class="screen">
     <div id="game-stage">
-      <div style="padding:1rem; color:#aaa; position:absolute; z-index:10; pointer-events:none;">
-        ROOM CODE: <strong id="room-code-display" style="color:#fff; font-size:1.5rem;">----</strong>
+      <div class="room-code-tag">
+        ROOM: <strong id="room-code-display" style="color:#fff; font-size:1.2rem;">----</strong>
       </div>
-      <canvas id="game-canvas"></canvas>
+      <canvas id="game-canvas" width="1280" height="720"></canvas>
     </div>
     <div id="debug-bar"></div>
   </div>
@@ -330,11 +338,9 @@
         <div></div><button class="dpad-btn" id="btn-down">▼</button><div></div>
       </div>
     </div>
-
     <div class="center-pod">
       <button id="btn-fullscreen" class="util-btn" title="Toggle Fullscreen">⛶</button>
     </div>
-
     <div class="control-pod">
       <div class="action-container">
         <button class="action-btn" id="btn-b">B</button>
@@ -343,6 +349,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=5"></script>
+  <script type="module" src="js/app.js?v=7"></script>
 </body>
 </html>

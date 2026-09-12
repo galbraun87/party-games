@@ -1,52 +1,55 @@
-const PLAYER_COLORS = [
-  'var(--p1-color)', 'var(--p2-color)', 'var(--p3-color)', 'var(--p4-color)',
-  'var(--p5-color)', 'var(--p6-color)', 'var(--p7-color)', 'var(--p8-color)'
-];
-
 export class TVDebugPanel {
-  constructor(containerEl) {
-    this.container = containerEl;
-    this.slots = [];
-    this.renderSlots();
+  constructor(containerElement) {
+    this.container = containerElement;
+    this.init();
   }
 
-  renderSlots() {
+  init() {
     this.container.innerHTML = '';
     for (let i = 0; i < 8; i++) {
       const card = document.createElement('div');
-      card.className = 'player-card';
-      card.style.setProperty('--p-color', PLAYER_COLORS[i]);
+      card.className = `player-card p${i + 1}`;
+      card.style.setProperty('--p-color', `var(--p${i + 1}-color)`);
       card.innerHTML = `
-        <span class="player-label">P${i + 1}</span>
+        <div class="player-label">P${i + 1}</div>
         <div class="mini-controller">
           <div class="mini-dpad-grid">
-            <div></div><div class="mini-key" id="p${i}-up"></div><div></div>
-            <div class="mini-key" id="p${i}-left"></div><div></div><div class="mini-key" id="p${i}-right"></div>
-            <div></div><div class="mini-key" id="p${i}-down"></div><div></div>
+            <div class="mini-key"></div><div class="mini-key key-up"></div><div class="mini-key"></div>
+            <div class="mini-key key-left"></div><div class="mini-key"></div><div class="mini-key key-right"></div>
+            <div class="mini-key"></div><div class="mini-key key-down"></div><div class="mini-key"></div>
           </div>
           <div class="mini-actions">
-            <div class="mini-key mini-btn btn-b" id="p${i}-b"></div>
-            <div class="mini-key mini-btn btn-a" id="p${i}-a"></div>
+            <div class="mini-btn btn-b"></div><div class="mini-btn btn-a"></div>
           </div>
         </div>
       `;
       this.container.appendChild(card);
-      this.slots.push(card);
     }
   }
 
-  setConnected(playerIndex, isConnected) {
-    if (this.slots[playerIndex]) {
-      this.slots[playerIndex].classList.toggle('connected', isConnected);
+  setConnected(slot, isConnected, customName = null) {
+    const card = this.container.children[slot];
+    if (!card) return;
+    if (isConnected) {
+      card.classList.add('connected');
+      if (customName) this.setName(slot, customName);
+    } else {
+      card.classList.remove('connected');
+      card.querySelector('.player-label').innerText = `P${slot + 1}`;
     }
   }
 
-  updateInput(playerIndex, state) {
-    if (!state) return;
-    const keys = ['up', 'down', 'left', 'right', 'a', 'b'];
-    keys.forEach((key) => {
-      const el = document.getElementById(`p${playerIndex}-${key}`);
-      if (el) el.classList.toggle('active', !!state[key]);
-    });
+  setName(slot, name) {
+    const card = this.container.children[slot];
+    if (card) card.querySelector('.player-label').innerText = name;
+  }
+
+  updateInput(slot, state) {
+    const card = this.container.children[slot];
+    if (!card) return;
+    const toggle = (selector, active) => card.querySelector(selector)?.classList.toggle('active', !!active);
+    toggle('.key-up', state.up); toggle('.key-down', state.down);
+    toggle('.key-left', state.left); toggle('.key-right', state.right);
+    toggle('.btn-a', state.a); toggle('.btn-b', state.b);
   }
 }

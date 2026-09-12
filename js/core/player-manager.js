@@ -1,6 +1,7 @@
+// Distinct colors mapping CSS exactly
 const PLAYER_COLORS = [
-  '#ff4757', '#2ed573', '#1e90ff', '#ffa502',
-  '#9b59b6', '#e84393', '#00d2d3', '#ff6b81'
+  '#ff3333', '#3366ff', '#ffff33', '#ff33ff',
+  '#ff9900', '#ffffff', '#9900ff', '#000000'
 ];
 
 export class PlayerManager {
@@ -24,7 +25,7 @@ export class PlayerManager {
     player.connected = true;
     player.score = 0;
     player.isAlive = true;
-    player.customData = {};
+    if (!player.customData.name) player.customData = {};
     return player;
   }
 
@@ -36,21 +37,7 @@ export class PlayerManager {
     player.isAlive = false;
   }
 
-  getPlayer(slot) {
-    return this.players[slot] || null;
-  }
-
-  getConnectedPlayers() {
-    return this.players.filter(p => p.connected);
-  }
-
-  resetAllScores() {
-    this.players.forEach(p => { p.score = 0; p.isAlive = true; p.customData = {}; });
-  }
-
-  setCustomData(slot, key, value) {
-    if (this.players[slot]) {
-      this.players[slot].customData[key] = value;
-    }
-  }
+  getPlayer(slot) { return this.players[slot] || null; }
+  getConnectedPlayers() { return this.players.filter(p => p.connected); }
+  setCustomData(slot, key, value) { if (this.players[slot]) this.players[slot].customData[key] = value; }
 }
