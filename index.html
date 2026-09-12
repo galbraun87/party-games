@@ -77,7 +77,7 @@
       color: white;
     }
 
-    /* 2. TV View */
+    /* 2. TV View & Debug Bar Layout */
     #tv-view {
       flex-direction: column;
       height: 100dvh;
@@ -97,6 +97,87 @@
       height: 100%;
       display: block;
     }
+
+    #debug-bar {
+      height: min(120px, 18dvh);
+      background: var(--panel-bg);
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      padding: 6px;
+      border-top: 2px solid #3f3f50;
+      box-sizing: border-box;
+    }
+
+    .player-card {
+      background: #141419;
+      border-radius: 6px;
+      border-top: 3px solid #333;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-around;
+      opacity: 0.35;
+      transition: opacity 0.2s, border-color 0.2s;
+    }
+
+    .player-card.connected {
+      opacity: 1;
+      border-top-color: var(--p-color);
+    }
+
+    .player-label {
+      font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+      font-weight: 800;
+      color: #666;
+    }
+
+    .player-card.connected .player-label {
+      color: var(--p-color);
+    }
+
+    .mini-controller {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .mini-dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: min(28px, 4vw);
+      height: min(28px, 4vw);
+      gap: 1px;
+    }
+
+    .mini-key {
+      background: #252733;
+      border-radius: 1px;
+    }
+
+    .mini-key.active {
+      background: var(--p-color, #2ed573);
+      box-shadow: 0 0 5px var(--p-color, #2ed573);
+    }
+
+    .mini-actions {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .mini-btn {
+      width: min(10px, 1.8vw);
+      height: min(10px, 1.8vw);
+      border-radius: 50%;
+    }
+
+    .mini-btn.btn-b { border: 1px solid #ff4757; }
+    .mini-btn.btn-a { border: 1px solid #2ed573; }
 
     /* 3. Controller View */
     #controller-view {
@@ -262,6 +343,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=5"></script>
 </body>
 </html>

@@ -2,10 +2,11 @@ import { BaseGame } from '../base-game.js';
 
 export class FlappyGame extends BaseGame {
   init() {
-    this.gravity = 0.35;
-    this.jumpForce = -7;
-    this.pipeSpeed = 2.5;
-    this.pipeGap = 130;
+    // Easier & floatier party physics
+    this.gravity = 0.22;
+    this.jumpForce = -5.5;
+    this.pipeSpeed = 1.8;
+    this.pipeGap = 180; // Wider gap between top and bottom pipes
     this.pipes = [];
     this.spawnTimer = 0;
     this.score = 0;
@@ -13,7 +14,7 @@ export class FlappyGame extends BaseGame {
 
     // Initialize bird physics for all connected players
     this.birds = this.playerManager.players.map(p => ({
-      x: 100 + p.slot * 15, // Slightly staggered X positions
+      x: 100 + p.slot * 15,
       y: this.canvas.height / 2,
       vy: 0,
       radius: 12,
@@ -24,7 +25,7 @@ export class FlappyGame extends BaseGame {
 
   update() {
     if (this.gameOver) {
-      // Press A on any controller to restart once all players die
+      // Press A on any connected controller to restart
       for (let i = 0; i < 8; i++) {
         if (this.inputBus.justPressed(i, 'a')) this.init();
       }
@@ -52,11 +53,11 @@ export class FlappyGame extends BaseGame {
 
     if (!anyAlive) this.gameOver = true;
 
-    // 2. Spawn & Update Pipes
+    // 2. Spawn & Update Pipes (Slower interval)
     this.spawnTimer++;
-    if (this.spawnTimer > 100) {
-      const minY = 80;
-      const maxY = this.canvas.height - this.pipeGap - 80;
+    if (this.spawnTimer > 130) {
+      const minY = 60;
+      const maxY = this.canvas.height - this.pipeGap - 60;
       const topY = Math.floor(Math.random() * (maxY - minY)) + minY;
       this.pipes.push({ x: this.canvas.width, topY, passed: false });
       this.spawnTimer = 0;
@@ -106,7 +107,7 @@ export class FlappyGame extends BaseGame {
       ctx.stroke();
     });
 
-    // Draw Score & Game Over overlay
+    // Draw Score & Overlay
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 24px sans-serif';
     ctx.fillText(`Score: ${this.score}`, 20, 40);
