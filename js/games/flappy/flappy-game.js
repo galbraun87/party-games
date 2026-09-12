@@ -1,219 +1,325 @@
-import { BaseGame } from '../base-game.js';
+const PLAYER_COLORS = [
+  '#ff3366', '#00e5ff', '#ffd500', '#b700ff',
+  '#ff7300', '#00ff66', '#ff00aa', '#3399ff'
+];
 
-export class FlappyGame extends BaseGame {
-  init() {
-    this.gravity = 0.16;
-    this.jumpForce = -4.8;
-    this.pipeSpeed = 1.4;
-    this.pipeGap = 220;
-    this.hitboxRadius = 7;
-    this.visualRadius = 14;
+export class FlappyGame {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.width = 1280;
+    this.height = 720;
 
+    this.gravity = 0.45;
+    this.jumpForce = -8.5;
+    this.pipeSpeed = 3.2;
+    this.pipeSpawnInterval = 110;
+    this.pipeGap = 190;
+
+    this.birds = [];
     this.pipes = [];
-    this.spawnTimer = 0;
-    this.score = 0;
-    this.gameOver = false;
-    this.winnerName = null;
-    this.eliminationOrder = [];
-    
-    // 3 Second Countdown
-    this.countdownTimer = 180; // 60 frames * 3 seconds
-    this.countdownValue = 3;
+    this.clouds = [];
+    this.frameCount = 0;
+    this.groundOffset = 0;
 
-    // Load ALL players, connected or not. 
-    this.birds = this.playerManager.players.map(p => ({
-      slot: p.slot,
-      name: p.customData.name || `P${p.slot + 1}`,
-      x: 140 + p.slot * 20,
-      y: this.canvas.height / 2,
+    this.initBackground();
+    this.initPlayers();
+  }
+
+  initPlayers() {
+    this.birds = Array.from({ length: 8 }, (_, i) => ({
+      slot: i,
+      x: 180 + i * 25,
+      y: 300 + (i % 3) * 40,
       vy: 0,
-      alive: p.connected,
-      color: p.color
+      radius: 18,
+      color: PLAYER_COLORS[i],
+      name: `P${i + 1}`,
+      alive: false,
+      active: false,
+      wingAngle: 0,
+      tilt: 0,
+      score: 0
     }));
   }
 
-  update() {
-    // Check for Restart input
-    if (this.gameOver) {
-      for (let i = 0; i < 8; i++) {
-        if (this.inputBus.justPressed(i, 'a')) this.init();
+  initBackground() {
+    this.clouds = Array.from({ length: 6 }, () => ({
+      x: Math.random() * this.width,
+      y: 40 + Math.random() * 180,
+      scale: 0.6 + Math.random() * 0.8,
+      speed: 0.4 + Math.random() * 0.5
+    }));
+  }
+
+  setPlayerActive(slot, active, name = null) {
+    if (this.birds[slot]) {
+      this.birds[slot].active = active;
+      this.birds[slot].alive = active;
+      if (name) this.birds[slot].name = name;
+      if (active && !this.birds[slot].alive) {
+        this.birds[slot].y = 300;
+        this.birds[slot].vy = 0;
       }
-      return;
     }
+  }
 
-    // Process Countdown Timer
-    if (this.countdownTimer > 0) {
-      this.countdownTimer--;
-      const secondsLeft = Math.ceil(this.countdownTimer / 60);
-      
-      if (secondsLeft < this.countdownValue) {
-        this.countdownValue = secondsLeft;
-        if (secondsLeft > 0) this.audio.tick();
-        else this.audio.go();
-      }
-      if (this.countdownTimer === 179) this.audio.tick(); // First tick
-      return; // Skip physics until countdown ends
-    }
-
-    // 1. Process Bird Physics & Dynamic Disconnect Logic
-    let activeBirdCount = 0;
-    let connectedBirdCount = 0;
-
-    this.birds.forEach((bird, i) => {
-      const p = this.playerManager.getPlayer(bird.slot);
-      
-      // If a player disconnects mid-round, eliminate them instantly
-      if (!p.connected && bird.alive) {
-        this.eliminateBird(bird);
-      }
-
-      if (p.connected) connectedBirdCount++;
-      
-      if (!bird.alive) return;
-      activeBirdCount++;
-
-      if (this.inputBus.justPressed(i, 'a') || this.inputBus.justPressed(i, 'up')) {
+  handleInput(slot, inputState) {
+    const bird = this.birds[slot];
+    if (bird && bird.active && bird.alive) {
+      if (inputState.a || inputState.up) {
         bird.vy = this.jumpForce;
-        this.audio.jump();
       }
+    }
+  }
+
+  update() {
+    this.frameCount++;
+    this.groundOffset = (this.groundOffset + this.pipeSpeed) % 30;
+
+    // Scroll clouds
+    this.clouds.forEach(c => {
+      c.x -= c.speed;
+      if (c.x < -150) c.x = this.width + 100;
+    });
+
+    // Spawn pipes
+    if (this.frameCount % this.pipeSpawnInterval === 0) {
+      const minCap = 80;
+      const maxCap = this.height - 180 - this.pipeGap - minCap;
+      const topHeight = minCap + Math.random() * maxCap;
+      this.pipes.push({
+        x: this.width + 80,
+        topHeight: topHeight,
+        bottomY: topHeight + this.pipeGap,
+        width: 76,
+        passed: false
+      });
+    }
+
+    // Update pipes
+    for (let i = this.pipes.length - 1; i >= 0; i--) {
+      const p = this.pipes[i];
+      p.x -= this.pipeSpeed;
+      if (p.x + p.width < 0) this.pipes.splice(i, 1);
+    }
+
+    // Update birds
+    this.birds.forEach(bird => {
+      if (!bird.active || !bird.alive) return;
 
       bird.vy += this.gravity;
       bird.y += bird.vy;
 
-      // Floor & Ceiling
-      if (bird.y - this.hitboxRadius <= 0 || bird.y + this.hitboxRadius >= this.canvas.height) {
-        this.eliminateBird(bird);
+      // Physics tilt & wing animation
+      bird.tilt = Math.min(Math.PI / 3, Math.max(-Math.PI / 4, bird.vy * 0.08));
+      bird.wingAngle = Math.sin(this.frameCount * 0.25) * 0.6;
+
+      // Ground collision
+      if (bird.y + bird.radius >= this.height - 60) {
+        bird.y = this.height - 60 - bird.radius;
+        bird.alive = false;
       }
-    });
 
-    // 2. Win / Game Over Condition Check
-    if (connectedBirdCount > 1 && activeBirdCount <= 1) {
-      // Multiplayer: End immediately if 1 or 0 remain
-      this.gameOver = true;
-      const lastAlive = this.birds.find(b => b.alive && this.playerManager.getPlayer(b.slot).connected);
-      this.winnerName = lastAlive ? lastAlive.name : (this.eliminationOrder[this.eliminationOrder.length - 1]?.name || 'Nobody');
-      this.audio.hit();
-      return;
-    } else if (connectedBirdCount <= 1 && activeBirdCount === 0) {
-      // Solo Player: End when 0 remain
-      this.gameOver = true;
-      this.winnerName = 'Nobody';
-      this.audio.hit();
-      return;
-    }
+      // Ceiling collision
+      if (bird.y - bird.radius <= 0) {
+        bird.y = bird.radius;
+        bird.vy = 0;
+      }
 
-    // 3. Spawn & Update Pipes
-    this.spawnTimer++;
-    if (this.spawnTimer > 150) {
-      const minY = 80;
-      const maxY = this.canvas.height - this.pipeGap - 80;
-      const topY = Math.floor(Math.random() * (maxY - minY)) + minY;
-      this.pipes.push({ x: this.canvas.width, topY, passed: false });
-      this.spawnTimer = 0;
-    }
-
-    this.pipes.forEach(p => { p.x -= this.pipeSpeed; });
-    this.pipes = this.pipes.filter(p => p.x > -70);
-
-    // 4. Pipe Collisions & Scoring
-    this.pipes.forEach(p => {
-      this.birds.forEach(bird => {
-        if (!bird.alive) return;
-        if (bird.x + this.hitboxRadius > p.x && bird.x - this.hitboxRadius < p.x + 50) {
-          if (bird.y - this.hitboxRadius < p.topY || bird.y + this.hitboxRadius > p.topY + this.pipeGap) {
-            this.eliminateBird(bird);
+      // Pipe collisions
+      this.pipes.forEach(pipe => {
+        if (bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipe.width) {
+          if (bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.bottomY) {
+            bird.alive = false;
           }
         }
       });
-      if (!p.passed && p.x < 140) {
-        p.passed = true;
-        this.score++;
-        this.audio.score();
-      }
     });
-  }
-
-  eliminateBird(bird) {
-    bird.alive = false;
-    this.audio.hit();
-    this.eliminationOrder.push(bird);
   }
 
   render() {
-    const ctx = this.ctx;
-    ctx.fillStyle = '#70c5ce';
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Draw Pipes
-    ctx.fillStyle = '#2ed573';
+    this.drawSky();
+    this.drawClouds();
+    this.drawPipes();
+    this.drawGround();
+    this.drawBirds();
+  }
+
+  drawSky() {
+    const skyGradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+    skyGradient.addColorStop(0, '#2b1055');
+    skyGradient.addColorStop(0.4, '#7597de');
+    skyGradient.addColorStop(0.85, '#b1d4e0');
+    skyGradient.addColorStop(1, '#f4d06f');
+    this.ctx.fillStyle = skyGradient;
+    this.ctx.fillRect(0, 0, this.width, this.height);
+  }
+
+  drawClouds() {
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+    this.clouds.forEach(c => {
+      this.ctx.beginPath();
+      this.ctx.arc(c.x, c.y, 30 * c.scale, 0, Math.PI * 2);
+      this.ctx.arc(c.x + 25 * c.scale, c.y - 10 * c.scale, 35 * c.scale, 0, Math.PI * 2);
+      this.ctx.arc(c.x + 55 * c.scale, c.y, 28 * c.scale, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+  }
+
+  drawPipes() {
     this.pipes.forEach(p => {
-      ctx.fillRect(p.x, 0, 50, p.topY);
-      ctx.fillRect(p.x, p.topY + this.pipeGap, 50, this.canvas.height);
+      this.draw3DPipe(p.x, 0, p.width, p.topHeight, true);
+      this.draw3DPipe(p.x, p.bottomY, p.width, this.height - 60 - p.bottomY, false);
     });
+  }
 
-    // Draw Birds (Only if Connected and Alive)
+  draw3DPipe(x, y, width, height, isTop) {
+    if (height <= 0) return;
+
+    this.ctx.save();
+
+    // Pipe stem cylinder gradient
+    const pipeGrad = this.ctx.createLinearGradient(x, 0, x + width, 0);
+    pipeGrad.addColorStop(0, '#134e13');
+    pipeGrad.addColorStop(0.25, '#2ecc71');
+    pipeGrad.addColorStop(0.6, '#27ae60');
+    pipeGrad.addColorStop(0.9, '#1e8449');
+    pipeGrad.addColorStop(1, '#0e3a0e');
+
+    this.ctx.fillStyle = pipeGrad;
+    this.ctx.fillRect(x, y, width, height);
+
+    // Pipe Lip Cap
+    const capHeight = 28;
+    const capExtra = 6;
+    const capX = x - capExtra;
+    const capWidth = width + capExtra * 2;
+    const capY = isTop ? y + height - capHeight : y;
+
+    const capGrad = this.ctx.createLinearGradient(capX, 0, capX + capWidth, 0);
+    capGrad.addColorStop(0, '#196f3d');
+    capGrad.addColorStop(0.3, '#58d68d');
+    capGrad.addColorStop(0.7, '#27ae60');
+    capGrad.addColorStop(1, '#114b27');
+
+    this.ctx.fillStyle = capGrad;
+    this.ctx.fillRect(capX, capY, capWidth, capHeight);
+
+    // 3D Bevel Lines
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    this.ctx.fillRect(capX + 8, capY, 4, capHeight);
+
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    this.ctx.fillRect(capX, isTop ? capY : capY + capHeight - 3, capWidth, 3);
+
+    this.ctx.restore();
+  }
+
+  drawGround() {
+    const groundY = this.height - 60;
+
+    // Dirt
+    const dirtGrad = this.ctx.createLinearGradient(0, groundY, 0, this.height);
+    dirtGrad.addColorStop(0, '#d35400');
+    dirtGrad.addColorStop(1, '#6e2c00');
+    this.ctx.fillStyle = dirtGrad;
+    this.ctx.fillRect(0, groundY, this.width, 60);
+
+    // Grass Top Strip
+    this.ctx.fillStyle = '#2ecc71';
+    this.ctx.fillRect(0, groundY, this.width, 14);
+
+    // Scrolling Grass Pattern
+    this.ctx.fillStyle = '#27ae60';
+    for (let x = -this.groundOffset; x < this.width + 30; x += 30) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, groundY + 14);
+      this.ctx.lineTo(x + 12, groundY + 14);
+      this.ctx.lineTo(x + 6, groundY + 22);
+      this.ctx.fill();
+    }
+  }
+
+  drawBirds() {
     this.birds.forEach(bird => {
-      const p = this.playerManager.getPlayer(bird.slot);
-      if (!bird.alive || !p.connected) return;
-      
-      ctx.beginPath();
-      ctx.arc(bird.x, bird.y, this.visualRadius, 0, Math.PI * 2);
-      ctx.fillStyle = bird.color;
-      ctx.fill();
-      
-      // Black border for visibility on black bird
-      ctx.strokeStyle = bird.color === '#000000' ? '#ffffff' : '#000000';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      if (!bird.active) return;
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.textAlign = 'center';
-      
-      // Black text shadow for visibility
-      ctx.shadowColor = 'black';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
-      ctx.fillText(bird.name, bird.x, bird.y - 20);
-      
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+      this.ctx.save();
+      this.ctx.translate(bird.x, bird.y);
+      this.ctx.rotate(bird.tilt);
+
+      if (!bird.alive) this.ctx.globalAlpha = 0.4;
+
+      // Main Oval Body
+      const bodyGrad = this.ctx.createRadialGradient(-4, -4, 2, 0, 0, bird.radius);
+      bodyGrad.addColorStop(0, '#ffffff');
+      bodyGrad.addColorStop(0.4, bird.color);
+      bodyGrad.addColorStop(1, '#000000');
+
+      this.ctx.fillStyle = bodyGrad;
+      this.ctx.beginPath();
+      this.ctx.ellipse(0, 0, bird.radius * 1.1, bird.radius * 0.9, 0, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeStyle = '#000000';
+      this.ctx.stroke();
+
+      // Eye
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.beginPath();
+      this.ctx.arc(6, -6, 6, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.stroke();
+
+      // Pupil
+      this.ctx.fillStyle = '#000000';
+      this.ctx.beginPath();
+      this.ctx.arc(8, -6, 2.5, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // Beak
+      this.ctx.fillStyle = '#f39c12';
+      this.ctx.beginPath();
+      this.ctx.moveTo(8, -2);
+      this.ctx.lineTo(18, 2);
+      this.ctx.lineTo(6, 6);
+      this.ctx.closePath();
+      this.ctx.fill();
+      this.ctx.stroke();
+
+      // Wing
+      this.ctx.save();
+      this.ctx.translate(-4, 2);
+      this.ctx.rotate(bird.wingAngle);
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.beginPath();
+      this.ctx.ellipse(-2, 0, 9, 5, 0, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.stroke();
+      this.ctx.restore();
+
+      this.ctx.restore();
+
+      // Name Tag Badge above bird
+      this.ctx.save();
+      this.ctx.font = 'bold 12px Nunito, sans-serif';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillStyle = bird.color;
+      this.ctx.fillText(bird.name, bird.x, bird.y - bird.radius - 12);
+      this.ctx.restore();
     });
+  }
 
-    // UI Overlay
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.shadowColor = 'black';
-    ctx.shadowBlur = 4;
-    ctx.fillText(`Score: ${this.score}`, 30, 45);
-    ctx.shadowBlur = 0;
+  loop() {
+    this.update();
+    this.render();
+    requestAnimationFrame(() => this.loop());
+  }
 
-    // Countdown Overlay
-    if (this.countdownTimer > 0 && !this.gameOver) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 120px sans-serif';
-      ctx.textAlign = 'center';
-      const text = this.countdownValue > 0 ? this.countdownValue : 'GO!';
-      ctx.fillText(text, this.canvas.width / 2, this.canvas.height / 2 + 40);
-    }
-
-    // Game Over Overlay
-    if (this.gameOver) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      ctx.fillStyle = '#f1c40f';
-      ctx.font = 'bold 44px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`🏆 WINNER: ${this.winnerName} 🏆`, this.canvas.width / 2, this.canvas.height / 2 - 30);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '22px sans-serif';
-      ctx.fillText('Press A on any controller to Restart', this.canvas.width / 2, this.canvas.height / 2 + 30);
-      ctx.textAlign = 'left';
-    }
+  start() {
+    this.loop();
   }
 }
