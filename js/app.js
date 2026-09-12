@@ -1,7 +1,7 @@
 import { PeerHost } from './core/peer-host.js';
 import { PeerClient } from './core/peer-client.js';
 import { TVDebugPanel } from './ui/tv-debug.js';
-import { FlappyGame } from './game/flappy-game.js'; // Updated to flappy-game.js
+import { FlappyGame } from './game/flappy-game.js';
 
 let host = null;
 let client = null;
@@ -14,65 +14,95 @@ const inputState = {
 
 function switchScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId)?.classList.add('active');
+  const target = document.getElementById(screenId);
+  if (target) {
+    target.classList.add('active');
+  } else {
+    console.error(`Screen ID "${screenId}" not found in DOM.`);
+  }
 }
 
-// 1. Initialize TV Host Mode
-document.getElementById('btn-host-tv')?.addEventListener('click', () => {
-  switchScreen('tv-view');
-
-  const canvas = document.getElementById('game-canvas');
-  const debugBar = document.getElementById('debug-bar');
-
-  debugPanel = new TVDebugPanel(debugBar);
-  game = new FlappyGame(canvas);
-
-  host = new PeerHost(
-    (slot, peerId) => {
-      debugPanel.setConnected(slot, true);
-      game.setPlayerActive(slot, true);
-    },
-    (slot) => {
-      debugPanel.setConnected(slot, false);
-      game.setPlayerActive(slot, false);
-    },
-    (slot, input) => {
-      debugPanel.updateInput(slot, input);
-      game.handleInput(slot, input);
-    },
-    (slot, name) => {
-      debugPanel.setName(slot, name);
-      game.setPlayerActive(slot, true, name);
-    },
-    (slot, status) => {
-      debugPanel.setStatus(slot, status);
-    }
-  );
-
-  document.getElementById('room-code-display').innerText = host.code;
-});
-
-// 2. Initialize Phone Client Mode
-document.getElementById('btn-join-phone')?.addEventListener('click', () => {
-  const name = document.getElementById('player-name-input').value.trim() || 'Player';
-  const code = document.getElementById('room-code-input').value.trim().toUpperCase();
-
-  if (!code || code.length !== 4) {
-    alert('Please enter a valid 4-digit room code.');
+// 1. Host Game on TV Button Handler
+document.addEventListener('DOMContentLoaded', () => {
+  const hostBtn = document.getElementById('btn-host-tv');
+  if (!hostBtn) {
+    console.error('Host button #btn-host-tv not found in DOM.');
     return;
   }
 
-  switchScreen('controller-view');
+  hostBtn.addEventListener('click', () => {
+    try {
+      switchScreen('tv-view');
 
-  client = new PeerClient(
-    code,
-    name,
-    (slot) => { console.log('Connected to host at slot:', slot); },
-    () => { alert('Disconnected from TV host.'); switchScreen('menu-view'); },
-    (err) => { console.error('Connection error:', err); }
-  );
+      const canvas = document.getElementById('game-canvas');
+      const debugBar = document.getElementById('debug-bar');
 
-  bindControllerEvents();
+      if (!canvas || !debugBar) {
+        throw new Error('TV Canvas or Debug Bar elements are missing from HTML.');
+      }
+
+      debugPanel = new TVDebugPanel(debugBar);
+      game = new FlappyGame(canvas);
+
+      host = new PeerHost(
+        (slot, peerId) => {
+          if (debugPanel) debugPanel.setConnected(slot, true);
+          if (game) game.setPlayerActive(slot, true);
+        },
+        (slot) => {
+          if (debugPanel) debugPanel.setConnected(slot, false);
+          if (game) game.setPlayerActive(slot, false);
+        },
+        (slot, input) => {
+          if (debugPanel) debugPanel.updateInput(slot, input);
+          if (game) game.handleInput(slot, input);
+        },
+        (slot, name) => {
+          if (debugPanel) debugPanel.setName(slot, name);
+          if (game) game.setPlayerActive(slot, true, name);
+        },
+        (slot, status) => {
+          if (debugPanel) debugPanel.setStatus(slot, status);
+        }
+      );
+
+      const codeDisplay = document.getElementById('room-code-display');
+      if (codeDisplay && host.code) {
+        codeDisplay.innerText = host.code;
+      }
+    } catch (err) {
+      console.error('Error starting TV host mode:', err);
+      alert(`Could not start TV mode: ${err.message}`);
+    }
+  });
+
+  // 2. Phone Controller Join Button Handler
+  document.getElementById('btn-join-phone')?.addEventListener('click', () => {
+    try {
+      const name = document.getElementById('player-name-input').value.trim() || 'Player';
+      const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+      if (!code || code.length !== 4) {
+        alert('Please enter a valid 4-digit room code.');
+        return;
+      }
+
+      switchScreen('controller-view');
+
+      client = new PeerClient(
+        code,
+        name,
+        (slot) => { console.log('Connected to host at slot:', slot); },
+        () => { alert('Disconnected from TV host.'); switchScreen('menu-view'); },
+        (err) => { console.error('Connection error:', err); }
+      );
+
+      bindControllerEvents();
+    } catch (err) {
+      console.error('Error joining match:', err);
+      alert(`Could not join game: ${err.message}`);
+    }
+  });
 });
 
 // 3. Controller Input Event Binding

@@ -1,7 +1,7 @@
 const PREFIX = 'tvparty-';
 const MAX_PLAYERS = 8;
-const STAGE1_TIMEOUT = 12000; // 12s -> Player grayed out (Inactive)
-const STAGE2_TIMEOUT = 42000; // 42s total -> Hard kick
+const STAGE1_TIMEOUT = 12000;
+const STAGE2_TIMEOUT = 42000;
 
 export class PeerHost {
   constructor(onConnect, onDisconnect, onInput, onNameChange, onStatusChange) {
@@ -16,7 +16,7 @@ export class PeerHost {
     this.lastSeen = new Array(MAX_PLAYERS).fill(0);
     this.playerStates = new Array(MAX_PLAYERS).fill('disconnected');
     
-    // Strict 4-digit numeric room code generator (1000 - 9999)
+    // Generate 4-digit code (1000 - 9999)
     this.code = Math.floor(1000 + Math.random() * 9000).toString();
     this.peer = null;
     
@@ -25,13 +25,25 @@ export class PeerHost {
   }
 
   init() {
-    this.peer = new window.Peer(`${PREFIX}${this.code}`);
+    if (typeof window.Peer === 'undefined') {
+      console.error('PeerJS CDN failed to load.');
+      alert('PeerJS library failed to load. Please check your internet connection.');
+      return;
+    }
+
+    try {
+      this.peer = new window.Peer(`${PREFIX}${this.code}`);
+    } catch (e) {
+      console.error('Failed to instantiate PeerJS:', e);
+      alert('Could not start host peer service.');
+      return;
+    }
+
     this.peer.on('connection', (conn) => {
       conn.on('data', (data) => {
         let currentSlot = this.slots.indexOf(conn);
 
         if (data && data.type === 'JOIN') {
-          // Kick stale connection if same device reconnects
           const existingSlot = this.deviceIds.indexOf(data.deviceId);
           if (existingSlot !== -1) {
             this.purgeSlot(existingSlot);
@@ -78,6 +90,10 @@ export class PeerHost {
 
       conn.on('close', cleanup);
       conn.on('error', cleanup);
+    });
+
+    this.peer.on('error', (err) => {
+      console.error('PeerHost network error:', err);
     });
   }
 
