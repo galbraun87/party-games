@@ -12,6 +12,9 @@ const showScreen = (target) => {
   target.classList.add('active');
 };
 
+let activePhoneUI = null;
+let activeClient = null;
+
 // 1. Host Mode (TV)
 document.getElementById('btn-host-tv').addEventListener('click', () => {
   showScreen(tvView);
@@ -27,20 +30,34 @@ document.getElementById('btn-host-tv').addEventListener('click', () => {
 });
 
 // 2. Client Mode (Phone)
-document.getElementById('btn-join-phone').addEventListener('click', () => {
+const joinBtn = document.getElementById('btn-join-phone');
+
+joinBtn.addEventListener('click', () => {
   const code = document.getElementById('room-code-input').value.trim();
   if (!code || code.length !== 4) {
     alert('Please enter a 4-digit room code');
     return;
   }
 
-  const client = new PeerClient(
+  joinBtn.disabled = true;
+
+  activeClient = new PeerClient(
     code,
     () => {
       showScreen(controllerView);
-      new PhoneUI((inputState) => client.sendInput(inputState));
+      if (!activePhoneUI) {
+        activePhoneUI = new PhoneUI((inputState) => {
+          if (activeClient) activeClient.sendInput(inputState);
+        });
+      }
     },
-    () => alert('Disconnected from TV'),
-    (err) => alert(`Connection error: ${err.type || err}`)
+    () => {
+      joinBtn.disabled = false;
+      alert('Disconnected from TV');
+    },
+    (err) => {
+      joinBtn.disabled = false;
+      alert(`Connection error: ${err.type || err}`);
+    }
   );
 });
